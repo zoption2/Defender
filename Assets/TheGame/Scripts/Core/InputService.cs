@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using TheGame.Input;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -11,6 +11,9 @@ namespace TheGame.Core
     public interface IInputService
     {
         void Initialize();
+        void RegisterClick(IInteractable interactable);
+        void RegisterEnter(IInteractable interactable);
+        void RegisterExit(IInteractable interactable);
     }
 
 
@@ -19,6 +22,8 @@ namespace TheGame.Core
         private Inputs _inputs;
         private Camera _camera;
         private InputSystemUIInputModule _inputModule;
+        private List<IInteractable> _selected;
+        private bool _isInputPressed;
 
         public InputSystemUIInputModule InputModule
         {
@@ -36,6 +41,7 @@ namespace TheGame.Core
 
         public InputService()
         {
+            _selected = new List<IInteractable>();
         }
 
         public void Initialize()
@@ -48,57 +54,107 @@ namespace TheGame.Core
             Debug.Log("InputService inited");
         }
 
-        private void BindInputs()
+        public void RegisterClick(IInteractable interactable)
         {
-            var map = _inputs.Main;
-            _inputs.Main.Tap.started += TapStarted;
-            _inputs.Main.Tap.canceled += ctx => TapCanceled(ctx);
-            _inputs.Main.Contact.started += ContactStarted;
-            _inputs.Main.Contact.canceled += ContactCanceled;
-            _inputs.Main.TouchPosition.started += ctx => TouchStarted(ctx);
-        }
-
-        private void TouchStarted(InputAction.CallbackContext obj)
-        {
-            Debug.Log("Touch started");
-            Ray ray = _camera.ScreenPointToRay(obj.ReadValue<Vector2>());
-            if (Physics.Raycast(ray, out RaycastHit hitInfo))
+            if (!_selected.Contains(interactable))
             {
-                if (hitInfo.transform.TryGetComponent<IClickable>(out IClickable clickable))
-                {
-                    clickable.OnClick();
-                }
+                _selected.Add(interactable);
+                interactable.Select();
             }
         }
 
+        public void RegisterEnter(IInteractable interactable)
+        {
+            if (_isInputPressed && !_selected.Contains(interactable))
+            {
+                _selected.Add(interactable);
+                interactable.Select();
+            }
+            else
+            {
+                interactable.Highlight();
+            }
+        }
+
+        public void RegisterExit(IInteractable interactable)
+        {
+            if (!_isInputPressed)
+            {
+                interactable.Unhighlight();
+            }
+        }
+
+        private void BindInputs()
+        {
+            var map = _inputs.Main;
+            _inputs.Main.Contact.started += ContactStarted;
+            _inputs.Main.Contact.canceled += ContactCanceled;
+            _inputs.Main.Tap.started += TapStarted;
+            _inputs.Main.TouchPosition.started += PointerStarted;
+        }
+
+
+        private void PointerStarted(InputAction.CallbackContext obj)
+        {
+            Debug.Log("Pointer started");
+            _isInputPressed = true;
+            Physics.Raycast(Camera.main.ScreenPointToRay(obj.ReadValue<Vector2>()), out RaycastHit hit);
+            if (!hit.collider)
+            {
+                return;
+            }
+
+            if (hit.transform.TryGetComponent(out IInteractable interactable))
+            {
+                interactable.Select();
+            }
+        }
+
+        private void TapStarted(InputAction.CallbackContext obj)
+        {
+            Debug.Log("Tap started");
+            _isInputPressed = true;
+            Physics.Raycast(Camera.main.ScreenPointToRay(obj.ReadValue<Vector2>()), out RaycastHit hit);
+            if (!hit.collider)
+            {
+                return;
+            }
+
+            if (hit.transform.TryGetComponent(out IInteractable interactable))
+            {
+                interactable.Select();
+            }
+        }
 
         private void ContactStarted(InputAction.CallbackContext obj)
         {
             Debug.Log("Contact started");
-            //var worldPoint = _camera.ScreenToWorldPoint(obj.ReadValue<Vector2>());
+            _isInputPressed = true;
+            Physics.Raycast(Camera.main.ScreenPointToRay(obj.ReadValue<Vector2>()), out RaycastHit hit);
+            if (!hit.collider)
+            {
+                return;
+            }
+
+            if (hit.transform.TryGetComponent(out IInteractable interactable))
+            {
+                interactable.Select();
+            }
         }
 
         private void ContactCanceled(InputAction.CallbackContext obj)
         {
             Debug.Log("Contact canceled");
-        }
-
-
-        private void TapStarted(InputAction.CallbackContext context)
-        {
-            Debug.Log("Tap started");
-
-        }
-
-        private void TapCanceled(InputAction.CallbackContext context)
-        {
-            Debug.Log("Tap canceled");
+            _isInputPressed = false;
         }
     }
 
-    public interface IClickable
+    public interface IInteractable
     {
-        void OnClick();
+        void Highlight();
+        void Unhighlight();
+        void Select();
+        void UnSelect();
     }
 
 }

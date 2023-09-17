@@ -31,12 +31,12 @@ namespace TheGame.Input
             ""actions"": [
                 {
                     ""name"": ""Tap"",
-                    ""type"": ""Button"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""d916c8e4-86a5-4eb0-aeab-6958460dfa11"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""Contact"",
@@ -45,15 +45,15 @@ namespace TheGame.Input
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
-                    ""initialStateCheck"": false
+                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""TouchPosition"",
-                    ""type"": ""Value"",
+                    ""type"": ""PassThrough"",
                     ""id"": ""f65f10ea-207a-4b20-b9f4-f5d0789b2c6e"",
-                    ""expectedControlType"": """",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
-                    ""interactions"": ""Press"",
+                    ""interactions"": """",
                     ""initialStateCheck"": true
                 }
             ],
@@ -104,8 +104,8 @@ namespace TheGame.Input
                 },
                 {
                     ""name"": """",
-                    ""id"": ""3493f7bd-847e-4228-aed7-2e82250e6b91"",
-                    ""path"": ""<Pointer>/press"",
+                    ""id"": ""c808cc4b-2a92-4111-b083-ff2680fc91c7"",
+                    ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
