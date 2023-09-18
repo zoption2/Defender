@@ -1,12 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using Zenject;
-using TheGame.Services;
-using TheGame.Gameplay;
+using System.Threading.Tasks;
 
 namespace TheGame.Core
 {
-    public class TestObject : MonoBehaviour, IInteractable, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+    public class TestObject : MonoBehaviour, IInteractable
     {
         [SerializeField] private Renderer _renderer;
         [Inject] private readonly IInputService _inputService;
@@ -20,6 +19,14 @@ namespace TheGame.Core
         {
             Debug.LogFormat("Click on {0} detected", nameof(TestObject));
             _renderer.material.color = Color.green;
+
+        }
+
+        public async void Activate()
+        {
+            _renderer.material.color = Color.red;
+            await Task.Delay(2000);
+            UnSelect();
         }
 
         public void Highlight()
@@ -37,19 +44,19 @@ namespace TheGame.Core
             _renderer.material.color = Color.gray;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void OnPointerClick()
         {
             Debug.Log("Click detected");
             _inputService.RegisterClick(this);
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public void OnPointerEnter()
         {
             Debug.Log("Enter detected");
             _inputService.RegisterEnter(this);
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public void OnPointerExit()
         {
             Debug.Log("Exit detected");
             _inputService.RegisterExit(this);
