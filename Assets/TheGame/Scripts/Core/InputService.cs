@@ -24,6 +24,9 @@ namespace TheGame.Core
         private InputSystemUIInputModule _inputModule;
         private List<IInteractable> _selected;
         private bool _isInputPressed;
+        private Vector2 _poinerPosition;
+        private RaycastHit[] _raycastHits = new RaycastHit[1];
+        private IInteractable _current;
 
         public InputSystemUIInputModule InputModule
         {
@@ -65,15 +68,19 @@ namespace TheGame.Core
 
         public void RegisterEnter(IInteractable interactable)
         {
-            if (_isInputPressed && !_selected.Contains(interactable))
+            if (_isInputPressed)
             {
-                _selected.Add(interactable);
-                interactable.Select();
+                if (!_selected.Contains(interactable))
+                {
+                    _selected.Add(interactable);
+                    interactable.Select();
+                }
             }
             else
             {
                 interactable.Highlight();
             }
+            _current = interactable;
         }
 
         public void RegisterExit(IInteractable interactable)
@@ -89,8 +96,12 @@ namespace TheGame.Core
             var map = _inputs.Main;
             _inputs.Main.Contact.started += ContactStarted;
             _inputs.Main.Contact.canceled += ContactCanceled;
-            _inputs.Main.Tap.started += TapStarted;
-            _inputs.Main.TouchPosition.started += PointerStarted;
+            _inputs.Main.Contact.Enable();
+            //_inputs.Main.Tap.started += TapStarted;
+            _inputs.Main.Tap.Enable();
+            //_inputs.Main.TouchPosition.started += PointerStarted;
+            _inputs.Main.TouchPosition.performed += PositionPerformed;
+            _inputs.Main.TouchPosition.Enable();
         }
 
 
@@ -114,7 +125,7 @@ namespace TheGame.Core
         {
             Debug.Log("Tap started");
             _isInputPressed = true;
-            Physics.Raycast(Camera.main.ScreenPointToRay(obj.ReadValue<Vector2>()), out RaycastHit hit);
+            /*Physics.Raycast(Camera.main.ScreenPointToRay(obj.ReadValue<Vector2>()), out RaycastHit hit);
             if (!hit.collider)
             {
                 return;
@@ -123,14 +134,16 @@ namespace TheGame.Core
             if (hit.transform.TryGetComponent(out IInteractable interactable))
             {
                 interactable.Select();
-            }
+            }*/
         }
 
         private void ContactStarted(InputAction.CallbackContext obj)
         {
             Debug.Log("Contact started");
             _isInputPressed = true;
-            Physics.Raycast(Camera.main.ScreenPointToRay(obj.ReadValue<Vector2>()), out RaycastHit hit);
+            Ray ray = _camera.ScreenPointToRay(_poinerPosition);
+            Physics.Raycast(ray, out RaycastHit hit);
+            //var hit = _raycastHits[0];
             if (!hit.collider)
             {
                 return;
@@ -138,7 +151,7 @@ namespace TheGame.Core
 
             if (hit.transform.TryGetComponent(out IInteractable interactable))
             {
-                interactable.Select();
+                RegisterEnter(interactable);
             }
         }
 
@@ -146,11 +159,59 @@ namespace TheGame.Core
         {
             Debug.Log("Contact canceled");
             _isInputPressed = false;
+
+            Ray ray = _camera.ScreenPointToRay(_poinerPosition);
+            Physics.Raycast(ray, out RaycastHit hit);
+            //var hit = _raycastHits[0];
+            if (!hit.collider)
+            {
+                for (int i = 0, j = _selected.Count; i < j; i++)
+                {
+                    _selected[i].UnSelect();
+                }
+                _current = null;
+                _selected.Clear();
+                return;
+            }
+
+            if (hit.transform.TryGetComponent(out IInteractable interactable))
+            {
+                for (int i = 0, j = _selected.Count; i < j; i++)
+                {
+                    _selected[i].Activate();
+                }
+                _selected.Clear();
+            }
+        }
+
+        private void PositionPerformed(InputAction.CallbackContext obj)
+        {
+            _poinerPosition = obj.ReadValue<Vector2>();
+            Debug.Log("Position performing" + obj.ReadValue<Vector2>());
+
+            Ray ray = _camera.ScreenPointToRay(_poinerPosition);
+            Physics.Raycast(ray, out RaycastHit hit);
+            //var hit = _raycastHits[0];
+            if (!hit.collider)
+            {
+                if (_current != null)
+                {
+                    RegisterExit(_current);
+                    _current = null;
+                }
+                return;
+            }
+
+            if (hit.transform.TryGetComponent(out IInteractable interactable))
+            {
+                RegisterEnter(interactable);
+            }
         }
     }
 
     public interface IInteractable
     {
+        void Activate();
         void Highlight();
         void Unhighlight();
         void Select();

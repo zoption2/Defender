@@ -83,18 +83,7 @@ namespace TheGame.Input
                 {
                     ""name"": """",
                     ""id"": ""e78a91d5-4795-40e9-8bc1-5955b4520ce0"",
-                    ""path"": ""<Touchscreen>/primaryTouch/press"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Contact"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""f92235d6-14c7-4307-988d-9b4d7ee98ca7"",
-                    ""path"": ""<Keyboard>/anyKey"",
+                    ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -105,7 +94,7 @@ namespace TheGame.Input
                 {
                     ""name"": """",
                     ""id"": ""c808cc4b-2a92-4111-b083-ff2680fc91c7"",
-                    ""path"": ""<Mouse>/position"",
+                    ""path"": ""<Touchscreen>/primaryTouch/press"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -128,6 +117,17 @@ namespace TheGame.Input
                     ""name"": """",
                     ""id"": ""88f6222f-0c69-4df3-99c0-52f6fef622b9"",
                     ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TouchPosition"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""dcee5773-d0d2-434b-9be1-136459bd3d22"",
+                    ""path"": ""<Touchscreen>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
