@@ -3,9 +3,9 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Zenject;
-using TheGame.Services;
+using Services;
 
-namespace TheGame.Gameplay
+namespace Gameplay
 {
     public interface ISpellCardView : IView
     {
@@ -14,9 +14,6 @@ namespace TheGame.Gameplay
 
     public class SpellCardView : MonoBehaviour
         , ISpellCardView
-        , IPointerClickHandler
-        , IPointerEnterHandler
-        , IPointerExitHandler
         , IInteractable
     {
         [SerializeField] private Image _icon;
@@ -75,6 +72,11 @@ namespace TheGame.Gameplay
         public void OnPointerExit(PointerEventData eventData)
         {
             _inputsHandler.OnPointerExit();
+        }
+
+        public void Activate()
+        {
+            throw new NotImplementedException();
         }
     }
 

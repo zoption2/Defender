@@ -2,13 +2,16 @@
 using UnityEngine.EventSystems;
 using Zenject;
 using System.Threading.Tasks;
+using Services;
+using Services.InputEvents;
 
-namespace TheGame.Core
+namespace TheGame.Gameplay
 {
-    public class TestObject : MonoBehaviour, IInteractable
+    public class TestObject : MonoBehaviour, IInteractable, IInputTargetHandler
     {
         [SerializeField] private Renderer _renderer;
         [Inject] private readonly IInputService _inputService;
+        private bool _isActivate;
 
         private void Start()
         {
@@ -17,26 +20,36 @@ namespace TheGame.Core
 
         public void Select()
         {
-            Debug.LogFormat("Click on {0} detected", nameof(TestObject));
-            _renderer.material.color = Color.green;
-
+            if (!_isActivate)
+            {
+                Debug.LogFormat("Click on {0} detected", nameof(TestObject));
+                _renderer.material.color = Color.green;
+            }
         }
 
         public async void Activate()
         {
+            _isActivate = true;
             _renderer.material.color = Color.red;
             await Task.Delay(2000);
             UnSelect();
+            gameObject.SetActive(false);
         }
 
         public void Highlight()
         {
-            _renderer.material.color = Color.blue;
+            if (!_isActivate)
+            {
+                _renderer.material.color = Color.blue;
+            }
         }
 
         public void Unhighlight()
         {
-            _renderer.material.color = Color.gray;
+            if (!_isActivate)
+            {
+                _renderer.material.color = Color.gray;
+            }
         }
 
         public void UnSelect()
@@ -60,6 +73,16 @@ namespace TheGame.Core
         {
             Debug.Log("Exit detected");
             _inputService.RegisterExit(this);
+        }
+
+        public void OnInputTarget(InputInfo inputInfo)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnInputTargetLost(InputInfo inputInfo)
+        {
+            throw new System.NotImplementedException();
         }
     }
 
