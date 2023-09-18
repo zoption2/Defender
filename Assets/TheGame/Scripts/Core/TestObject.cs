@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using Zenject;
+using TheGame.Services;
+using TheGame.Gameplay;
 
 namespace TheGame.Core
 {
