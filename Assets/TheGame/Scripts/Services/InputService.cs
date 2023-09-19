@@ -29,8 +29,9 @@ namespace Services
         private bool _isInputPressed;
         private Vector2 _poinerPosition;
         private RaycastHit[] _raycastHits = new RaycastHit[3];
-        private IInputTargetHandler _currentTarget;
-        private InputInfo _info;
+        private IInteractable _last;
+        private IInteractable _current;
+        private InteractionInfo _info;
 
         public InputSystemUIInputModule InputModule
         {
@@ -49,7 +50,7 @@ namespace Services
         public InputService()
         {
             _selected = new List<IInteractable>();
-            _info = new InputInfo();
+            _info = new InteractionInfo();
         }
 
         public void Initialize()
@@ -60,16 +61,6 @@ namespace Services
             BindInputs();
             InputModule.ActivateModule();
             Debug.Log("InputService inited");
-        }
-
-       
-
-        public void RegisterExit(IInteractable interactable)
-        {
-            if (!_isInputPressed)
-            {
-                interactable.Unhighlight();
-            }
         }
 
         private void BindInputs()
@@ -95,7 +86,8 @@ namespace Services
 
             if (_raycastHits[0].transform.TryGetComponent(out IInteractable interactable))
             {
-                RegisterEnter(interactable);
+                UpdateInfo();
+                interactable.Select(_info);
             }
         }
 
@@ -103,28 +95,21 @@ namespace Services
         {
             Debug.Log("Press canceled");
             _isInputPressed = false;
-
+            UpdateInfo();
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
             if (hits == 0)
             {
-                for (int i = 0, j = _selected.Count; i < j; i++)
-                {
-                    _selected[i].UnSelect();
-                }
-                _currentTarget = null;
-                _selected.Clear();
+                _last?.RejectSelected();
                 return;
             }
 
             if (_raycastHits[0].transform.TryGetComponent(out IInteractable interactable))
             {
-                for (int i = 0, j = _selected.Count; i < j; i++)
-                {
-                    _selected[i].Activate();
-                }
-                _selected.Clear();
+                _current.ApproveSelected();
             }
+
+            _selected.Clear();
         }
 
         private void OnInputTrackingPerformed(InputAction.CallbackContext obj)
@@ -136,20 +121,32 @@ namespace Services
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
             if (hits == 0)
             {
-                if (_currentTarget != null)
+                if (_current != null)
                 {
                     UpdateInfo();
-                    _currentTarget.OnInputTargetLost(_info);
-                    _currentTarget = null;
+                    _current.Deselect(_info);
+                    _current = null;
                 }
                 return;
             }
 
-            if (_raycastHits[0].transform.TryGetComponent(out IInputTargetHandler target))
+            if (_raycastHits[0].transform.TryGetComponent(out IInteractable interactable))
             {
                 UpdateInfo();
-                target.OnInputTarget(_info);
-                _currentTarget = target;
+                if (interactable != _current)
+                {
+                    interactable.Select(_info);
+                    _current = interactable;
+                    _last = interactable;
+                }
+
+                //{
+                //    if (_isInputPressed && !_selected.Contains(interactable))
+                //    {
+                //        _selected.Add(interactable);
+                //    }
+                //}
+
             }
         }
 

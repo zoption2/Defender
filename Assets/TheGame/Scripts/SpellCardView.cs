@@ -4,6 +4,8 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Zenject;
 using Services;
+using Core;
+using Services.InputEvents;
 
 namespace Gameplay
 {
@@ -54,48 +56,61 @@ namespace Gameplay
             _icon.color = Color.green;
         }
 
-        public void UnSelect()
+        public void Deselect()
         {
             _icon.color = Color.gray;
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void ApproveSelected()
         {
-            _inputsHandler.OnClick();
+            _inputsHandler.OnApproveSelection();
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public void RejectSelected()
         {
-            _inputsHandler.OnPointerEnter();
+            _inputsHandler.OnRejectSelection();
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public void Select(InteractionInfo info)
         {
-            _inputsHandler.OnPointerExit();
+            _inputsHandler.OnSelect(info);
         }
 
-        public void Activate()
+        public void Deselect(InteractionInfo info)
         {
-            throw new NotImplementedException();
+            _inputsHandler.OnDeselect(info);
         }
     }
 
 
+
+    public interface ISpellCardModel : IModel
+    {
+        void Activate();
+        void Disactivate();
+    }
+
     public class SpellCardModel : IModel
     {
+        public void Activate()
+        {
 
+        }
     }
 
     public interface ISpellCardController
     {
-
+        void Activate();
+        void Prepare();
+        void Chill();
     }
 
     public interface ISpellCardInputs
     {
-        void OnClick();
-        void OnPointerEnter();
-        void OnPointerExit();
+        public void OnApproveSelection();
+        public void OnRejectSelection();
+        public void OnSelect(InteractionInfo info);
+        public void OnDeselect(InteractionInfo info);
     }
 
     public class SpellCardController 
@@ -104,33 +119,73 @@ namespace Gameplay
         , ISpellCardInputs
     {
         private readonly IInputService _inputService;
+        private readonly ISpellCardMediator _mediator;
+        private bool _isSelectable;
 
-        public SpellCardController(IInputService inputService)
+        public SpellCardController(IInputService inputService, ISpellCardMediator mediator)
         {
             _inputService = inputService;
+            _mediator = mediator;
         }
 
-
-        public void OnClick()
+        public void OnApproveSelection()
         {
-            _inputService.RegisterClick(_view);
+            _mediator.ConfirmActivation();
         }
 
-        public void OnPointerEnter()
+        public void OnRejectSelection()
         {
-            _inputService.RegisterEnter(_view);
+            _mediator.CancelActivation();
         }
 
-        public void OnPointerExit()
+        public void OnSelect(InteractionInfo info)
         {
-            _inputService.RegisterExit(_view);
+            if (!_isSelectable)
+            {
+                return;
+            }
+
+            if (info.IsPressed)
+            {
+                _view.Select();
+            }
+            else
+            {
+                _view.Highlight();
+            }
         }
 
+        public void OnDeselect(InteractionInfo info)
+        {
+            if (info.IsPressed)
+            {
+                
+            }
+            else
+            {
+                _view.Unhighlight();
+            }
+        }
 
         protected override void DoOnInit()
         {
             base.DoOnInit();
             _view.Init(this);
+        }
+
+        public void Activate()
+        {
+            Debug.Log("Activation detected!");
+        }
+
+        public void Prepare()
+        {
+            _view.Select();
+        }
+
+        public void Chill()
+        {
+            _view.Deselect();
         }
     }
 }

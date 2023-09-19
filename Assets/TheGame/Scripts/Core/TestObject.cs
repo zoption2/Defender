@@ -27,7 +27,7 @@ namespace TheGame.Gameplay
             }
         }
 
-        public async void Activate()
+        public async void ApproveSelected()
         {
             _isActivate = true;
             _renderer.material.color = Color.red;
@@ -57,30 +57,27 @@ namespace TheGame.Gameplay
             _renderer.material.color = Color.gray;
         }
 
-        public void OnPointerClick()
-        {
-            Debug.Log("Click detected");
-            _inputService.RegisterClick(this);
-        }
-
-        public void OnPointerEnter()
-        {
-            Debug.Log("Enter detected");
-            _inputService.RegisterEnter(this);
-        }
-
-        public void OnPointerExit()
-        {
-            Debug.Log("Exit detected");
-            _inputService.RegisterExit(this);
-        }
-
-        public void OnInputTarget(InputInfo inputInfo)
+        public void OnInputTarget(InteractionInfo inputInfo)
         {
             throw new System.NotImplementedException();
         }
 
-        public void OnInputTargetLost(InputInfo inputInfo)
+        public void OnInputTargetLost(InteractionInfo inputInfo)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RejectSelected()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Select(InteractionInfo info)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void Deselect(InteractionInfo info)
         {
             throw new System.NotImplementedException();
         }

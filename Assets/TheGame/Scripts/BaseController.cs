@@ -1,7 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using System;
 
-namespace TheGame.Gameplay
+namespace Core
 {
     public abstract class BaseController<TView, TModel> 
         : IController<TView, TModel> where TView : IView where TModel : IModel

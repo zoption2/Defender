@@ -1,12 +1,11 @@
-﻿namespace Gameplay
+﻿namespace Services.InputEvents
 {
     public interface IInteractable
     {
-        void Activate();
-        void Highlight();
-        void Unhighlight();
-        void Select();
-        void UnSelect();
+        void ApproveSelected();
+        void RejectSelected();
+        void Select(InteractionInfo info);
+        void Deselect(InteractionInfo info);
     }
 
 }

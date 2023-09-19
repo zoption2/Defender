@@ -15,11 +15,11 @@ namespace Services.InputEvents
 
     public interface IInputTargetHandler
     {
-        void OnInputTarget(InputInfo inputInfo);
-        void OnInputTargetLost(InputInfo inputInfo);
+        void OnInputTarget(InteractionInfo inputInfo);
+        void OnInputTargetLost(InteractionInfo inputInfo);
     }
 
-    public struct InputInfo
+    public struct InteractionInfo
     {
         public Vector2 ScreenPosition;
         public bool IsPressed;
