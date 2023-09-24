@@ -16,7 +16,10 @@ namespace Gameplay
 
     public class SpellCardView : MonoBehaviour
         , ISpellCardView
-        , IInteractable
+        , IPointerDownHandler
+        , IPointerUpHandler
+        , IPointerEnterHandler
+        , IPointerExitHandler
     {
         [SerializeField] private Image _icon;
         private ISpellCardInputs _inputsHandler;
@@ -61,24 +64,34 @@ namespace Gameplay
             _icon.color = Color.gray;
         }
 
-        public void ApproveSelected()
+        public void Activate()
         {
-            _inputsHandler.OnApproveSelection();
+            _icon.color = Color.red;
         }
 
-        public void RejectSelected()
+        public void OnPointerClick(PointerEventData eventData)
         {
-            _inputsHandler.OnRejectSelection();
+            
         }
 
-        public void Select(InteractionInfo info)
+        public void OnPointerEnter(PointerEventData eventData)
         {
-            _inputsHandler.OnSelect(info);
+            _inputsHandler.OnPointerEnter(eventData);
         }
 
-        public void Deselect(InteractionInfo info)
+        public void OnPointerExit(PointerEventData eventData)
         {
-            _inputsHandler.OnDeselect(info);
+            _inputsHandler.OnPointerExit(eventData);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            _inputsHandler.OnPointerDown(eventData);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            _inputsHandler.OnPointerUp(eventData);
         }
     }
 
@@ -105,67 +118,29 @@ namespace Gameplay
         void Chill();
     }
 
-    public interface ISpellCardInputs
+    public interface ISpellCardInputs : IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler
     {
-        public void OnApproveSelection();
-        public void OnRejectSelection();
-        public void OnSelect(InteractionInfo info);
-        public void OnDeselect(InteractionInfo info);
+
     }
 
     public class SpellCardController 
         : BaseController<SpellCardView, SpellCardModel>
         , ISpellCardController
         , ISpellCardInputs
+        , IInputListener
     {
         private readonly IInputService _inputService;
         private readonly ISpellCardMediator _mediator;
         private bool _isSelectable;
+        private bool _isSelected;
 
         public SpellCardController(IInputService inputService, ISpellCardMediator mediator)
         {
             _inputService = inputService;
             _mediator = mediator;
+            _isSelectable = true;
         }
 
-        public void OnApproveSelection()
-        {
-            _mediator.ConfirmActivation();
-        }
-
-        public void OnRejectSelection()
-        {
-            _mediator.CancelActivation();
-        }
-
-        public void OnSelect(InteractionInfo info)
-        {
-            if (!_isSelectable)
-            {
-                return;
-            }
-
-            if (info.IsPressed)
-            {
-                _view.Select();
-            }
-            else
-            {
-                _view.Highlight();
-            }
-        }
-
-        public void OnDeselect(InteractionInfo info)
-        {
-            if (info.IsPressed)
-            {
-                
-            }
-            else
-            {
-                _view.Unhighlight();
-            }
-        }
 
         protected override void DoOnInit()
         {
@@ -175,17 +150,80 @@ namespace Gameplay
 
         public void Activate()
         {
-            Debug.Log("Activation detected!");
+            _view.Activate();
+            _isSelectable = false;
         }
 
         public void Prepare()
         {
+            _isSelected = true;
             _view.Select();
         }
 
         public void Chill()
         {
+            _isSelectable = true;
+            _isSelected = false;
             _view.Deselect();
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (!_isSelectable)
+            {
+                return;
+            }
+
+            if (eventData.eligibleForClick)
+            {
+                _mediator.AddSpellCard(this);
+            }
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (!_isSelectable)
+            {
+                return;
+            }
+
+            if (eventData.eligibleForClick)
+            {
+                _mediator.AddSpellCard(this);
+            }
+            else
+            {
+                _view.Highlight();
+            }
+            _inputService.SetCurrentListener(null);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            if (_isSelected)
+            {
+                _inputService.SetCurrentListener(this);
+            }
+
+            if (eventData.eligibleForClick)
+            {
+                
+            }
+            else
+            {
+                _view.Unhighlight();
+            }
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            _mediator.ConfirmActivation(this);
+        }
+
+        public void Notify()
+        {
+            _mediator.CancelActivation(this);
+            _inputService.SetCurrentListener(null);
         }
     }
 }

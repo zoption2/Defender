@@ -4,17 +4,22 @@ namespace Gameplay
 {
     public interface ISpellCardMediator
     {
+        bool IsInitSpellSelected { get; }
         void Initialize();
-        void ConfirmActivation();
-        void CancelActivation();
-        void AddSpellCard(ISpellCardController interactable);
-        void RemoveSpellCard(ISpellCardController interactable);
+
+        void ConfirmActivation(ISpellCardController controller);
+        void CancelActivation(ISpellCardController controller);
+        void AddSpellCard(ISpellCardController controller);
+        void RemoveSpellCard(ISpellCardController controller);
     }
 
 
     public class SpellCardMediator : ISpellCardMediator
     {
-        private Stack<ISpellCardController> _selected = new();
+        private bool _isInitSpellSelected;
+        private List<ISpellCardController> _selected = new();
+
+        public bool IsInitSpellSelected => _isInitSpellSelected;
 
 
         public void Initialize()
@@ -22,43 +27,74 @@ namespace Gameplay
 
         }
 
-        public void AddSpellCard(ISpellCardController interactable)
+        public void AddSpellCard(ISpellCardController controller)
         {
-            if (!_selected.Contains(interactable))
+            int selectedCount = _selected.Count;
+            if (!_selected.Contains(controller))
             {
-                _selected.Push(interactable);
-                interactable.Prepare();
+                _selected.Add(controller);
+                controller.Prepare();
+                UnityEngine.Debug.LogFormat("Controller added! ToTal count: {0}", _selected.Count);
             }
-        }
-
-        public void RemoveSpellCard(ISpellCardController interactable)
-        {
-            if (_selected.TryPeek(out ISpellCardController lastSpellCard))
+            else if(selectedCount > 1)
             {
-                if(lastSpellCard.Equals(interactable))
+                if (_selected[^2].Equals(controller))
                 {
-                    interactable.Chill();
-                    _selected.Pop();
+                    var lastController = _selected[^1];
+                    lastController.Chill();
+                    _selected.Remove(lastController);
+                    UnityEngine.Debug.LogFormat("Controller Removed! ToTal count: {0}", _selected.Count);
                 }
             }
-        }
 
-        public void ConfirmActivation()
-        {
-            for (int i = 0, j = _selected.Count; i < j; i++)
+            selectedCount = _selected.Count;
+            if (selectedCount == 1)
             {
-                var spellCard = _selected.Pop();
-                spellCard.Activate();
+                _isInitSpellSelected = true;
             }
         }
 
-        public void CancelActivation()
+        public void RemoveSpellCard(ISpellCardController controller)
+        {
+            if (_selected.Contains(controller))
+            {
+                _selected.Remove(controller);
+                UnityEngine.Debug.LogFormat("Controller Removed! ToTal count: {0}", _selected.Count);
+            }
+
+            int selectedCount = _selected.Count;
+            if (selectedCount == 0)
+            {
+                _isInitSpellSelected = false;
+            }
+        }
+
+        public void ConfirmActivation(ISpellCardController controller)
+        {
+            if (_selected.Contains(controller))
+            {
+                ActivateSpell();
+            }
+        }
+
+        public void CancelActivation(ISpellCardController controller)
+        {
+            for (int i = _selected.Count - 1, j = -1; i > j; i--)
+            {
+                _selected[i].Chill();
+            }
+
+            _selected.Clear();
+            _isInitSpellSelected = false;
+        }
+
+        private void ActivateSpell()
         {
             for (int i = 0, j = _selected.Count; i < j; i++)
             {
-                var spellCard = _selected.Pop();
-                spellCard.Chill();
+                _selected[i].Activate();
             }
+            UnityEngine.Debug.Log("Spell activated!");
         }
     }
 }

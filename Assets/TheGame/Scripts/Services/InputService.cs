@@ -7,24 +7,33 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Gameplay;
 using Services.InputEvents;
+using System;
 
 namespace Services
 {
     public interface IInputService
     {
         event System.Action OnInputPressed;
+        event System.Action OnInputUp;
         void Initialize();
-
+        void SetCurrentListener(IInputListener listener);
     }
 
+    public interface IInputListener
+    {
+        void Notify();
+    }
 
     public class InputService : IInputService
     {
-        public event System.Action OnInputPressed;
+        public event Action OnInputPressed;
+        public event Action OnInputUp;
 
         private Inputs _inputs;
         private Camera _camera;
+        private EventSystem _eventSystem;
         private InputSystemUIInputModule _inputModule;
+        private GraphicRaycaster _raycaster;
         private List<IInteractable> _selected;
         private bool _isInputPressed;
         private Vector2 _poinerPosition;
@@ -32,6 +41,7 @@ namespace Services
         private IInteractable _last;
         private IInteractable _current;
         private InteractionInfo _info;
+        private IInputListener _currentListener;
 
         public InputSystemUIInputModule InputModule
         {
@@ -40,6 +50,7 @@ namespace Services
                 if (_inputModule == null)
                 {
                     var go = new GameObject("NewEventSystem");
+                    _eventSystem = go.AddComponent<EventSystem>();
                     _inputModule = go.AddComponent<InputSystemUIInputModule>();
                     _inputModule.actionsAsset = _inputs.asset;
                 }
@@ -58,9 +69,15 @@ namespace Services
             _inputs = new Inputs();
             _inputs.Enable();
             _camera = Camera.main;
+            _raycaster = GameObject.FindObjectOfType<Canvas>().GetComponent<GraphicRaycaster>();
             BindInputs();
             InputModule.ActivateModule();
             Debug.Log("InputService inited");
+        }
+
+        public void SetCurrentListener(IInputListener listener)
+        {
+            _currentListener = listener;
         }
 
         private void BindInputs()
@@ -77,6 +94,12 @@ namespace Services
         {
             Debug.Log("Press started");
             _isInputPressed = true;
+
+            PointerEventData eventData = new PointerEventData(_eventSystem);
+            eventData.position = _poinerPosition;
+            var results = new List<RaycastResult>();
+            _raycaster.Raycast(eventData, results);
+
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
             if (hits == 0)
@@ -96,6 +119,19 @@ namespace Services
             Debug.Log("Press canceled");
             _isInputPressed = false;
             UpdateInfo();
+
+            PointerEventData eventData = new PointerEventData(_eventSystem);
+            eventData.position = _poinerPosition;
+            var results = new List<RaycastResult>();
+            _raycaster.Raycast(eventData, results);
+
+            _selected.Clear();
+
+            if (_currentListener != null)
+            {
+                _currentListener.Notify();
+            }
+
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
             if (hits == 0)
@@ -109,13 +145,17 @@ namespace Services
                 _current.ApproveSelected();
             }
 
-            _selected.Clear();
+
         }
 
         private void OnInputTrackingPerformed(InputAction.CallbackContext obj)
         {
             _poinerPosition = obj.ReadValue<Vector2>();
-            Debug.Log("Position performing" + obj.ReadValue<Vector2>());
+
+            PointerEventData eventData = new PointerEventData(_eventSystem);
+            eventData.position = _poinerPosition;
+            var results = new List<RaycastResult>();
+            _raycaster.Raycast(eventData, results);
 
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
