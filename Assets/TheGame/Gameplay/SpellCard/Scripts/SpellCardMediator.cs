@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 
+
 namespace Gameplay
 {
     public interface ISpellCardMediator
@@ -33,7 +34,7 @@ namespace Gameplay
             if (!_selected.Contains(controller))
             {
                 _selected.Add(controller);
-                controller.Prepare();
+                controller.Prepare(selectedCount + 1);
                 UnityEngine.Debug.LogFormat("Controller added! ToTal count: {0}", _selected.Count);
             }
             else if(selectedCount > 1)
@@ -75,6 +76,8 @@ namespace Gameplay
             {
                 ActivateSpell();
             }
+            _selected.Clear();
+            _isInitSpellSelected = false;
         }
 
         public void CancelActivation(ISpellCardController controller)

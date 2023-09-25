@@ -1,127 +1,25 @@
-using System;
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-using Zenject;
+﻿using UnityEngine.EventSystems;
 using Services;
 using Core;
-using Services.InputEvents;
+using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 namespace Gameplay
 {
-    public interface ISpellCardView : IView
-    {
-
-    }
-
-    public class SpellCardView : MonoBehaviour
-        , ISpellCardView
-        , IPointerDownHandler
-        , IPointerUpHandler
-        , IPointerEnterHandler
-        , IPointerExitHandler
-    {
-        [SerializeField] private Image _icon;
-        private ISpellCardInputs _inputsHandler;
-
-        public void Init(ISpellCardInputs inputsHandler)
-        {
-            _inputsHandler = inputsHandler;
-        }
-
-        public void Show(Action onShow)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Hide(Action onHide)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Release()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Highlight()
-        {
-            _icon.color = Color.yellow;
-        }
-
-        public void Unhighlight()
-        {
-            _icon.color = Color.gray;
-        }
-
-        public void Select()
-        {
-            _icon.color = Color.green;
-        }
-
-        public void Deselect()
-        {
-            _icon.color = Color.gray;
-        }
-
-        public void Activate()
-        {
-            _icon.color = Color.red;
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerEnter(eventData);
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerExit(eventData);
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerDown(eventData);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerUp(eventData);
-        }
-    }
-
-
-
-    public interface ISpellCardModel : IModel
-    {
-        void Activate();
-        void Disactivate();
-    }
-
-    public class SpellCardModel : IModel
-    {
-        public void Activate()
-        {
-
-        }
-    }
-
     public interface ISpellCardController
     {
         void Activate();
-        void Prepare();
+        void Disactivate();
+        void Prepare(int number);
         void Chill();
+        void SetPosition(Vector2 position, System.Action callback);
     }
 
     public interface ISpellCardInputs : IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler
     {
 
     }
+
 
     public class SpellCardController 
         : BaseController<SpellCardView, SpellCardModel>
@@ -145,19 +43,27 @@ namespace Gameplay
         protected override void DoOnInit()
         {
             base.DoOnInit();
-            _view.Init(this);
+            Color color = _model.Data.Element == ElementType.Fire ? Color.magenta : Color.blue;
+            _view.Init(this, color);
         }
 
-        public void Activate()
+        public async void Activate()
         {
             _view.Activate();
             _isSelectable = false;
+            await UniTask.Delay(1000);
+            _view.Hide(null);
         }
 
-        public void Prepare()
+        public void Disactivate()
+        {
+            _isSelectable = false;
+        }
+
+        public void Prepare(int number)
         {
             _isSelected = true;
-            _view.Select();
+            _view.Select(number);
         }
 
         public void Chill()
@@ -165,6 +71,11 @@ namespace Gameplay
             _isSelectable = true;
             _isSelected = false;
             _view.Deselect();
+        }
+
+        public void SetPosition(Vector2 position, System.Action callback)
+        {
+
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -218,6 +129,7 @@ namespace Gameplay
         public void OnPointerUp(PointerEventData eventData)
         {
             _mediator.ConfirmActivation(this);
+            _inputService.SetCurrentListener(null);
         }
 
         public void Notify()
