@@ -72,12 +72,22 @@ namespace TheGame.Gameplay
             throw new System.NotImplementedException();
         }
 
-        public void Select(InteractionInfo info)
+        public void OnPointerEnter(InteractionInfo info)
         {
             throw new System.NotImplementedException();
         }
 
-        public void Deselect(InteractionInfo info)
+        public void OnPointerExit(InteractionInfo info)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnPointerDown(InteractionInfo info)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnPointerUp(InteractionInfo info)
         {
             throw new System.NotImplementedException();
         }

@@ -69,7 +69,7 @@ namespace Services
             _inputs = new Inputs();
             _inputs.Enable();
             _camera = Camera.main;
-            _raycaster = GameObject.FindObjectOfType<Canvas>().GetComponent<GraphicRaycaster>();
+            //_raycaster = GameObject.FindObjectOfType<Canvas>().GetComponent<GraphicRaycaster>();
             BindInputs();
             InputModule.ActivateModule();
             Debug.Log("InputService inited");
@@ -95,10 +95,10 @@ namespace Services
             Debug.Log("Press started");
             _isInputPressed = true;
 
-            PointerEventData eventData = new PointerEventData(_eventSystem);
-            eventData.position = _poinerPosition;
-            var results = new List<RaycastResult>();
-            _raycaster.Raycast(eventData, results);
+            //PointerEventData eventData = new PointerEventData(_eventSystem);
+            //eventData.position = _poinerPosition;
+            //var results = new List<RaycastResult>();
+            //_raycaster.Raycast(eventData, results);
 
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
@@ -110,7 +110,7 @@ namespace Services
             if (_raycastHits[0].transform.TryGetComponent(out IInteractable interactable))
             {
                 UpdateInfo();
-                interactable.Select(_info);
+                interactable.OnPointerEnter(_info);
             }
         }
 
@@ -120,10 +120,10 @@ namespace Services
             _isInputPressed = false;
             UpdateInfo();
 
-            PointerEventData eventData = new PointerEventData(_eventSystem);
-            eventData.position = _poinerPosition;
-            var results = new List<RaycastResult>();
-            _raycaster.Raycast(eventData, results);
+            //PointerEventData eventData = new PointerEventData(_eventSystem);
+            //eventData.position = _poinerPosition;
+            //var results = new List<RaycastResult>();
+            //_raycaster.Raycast(eventData, results);
 
             _selected.Clear();
 
@@ -152,10 +152,10 @@ namespace Services
         {
             _poinerPosition = obj.ReadValue<Vector2>();
 
-            PointerEventData eventData = new PointerEventData(_eventSystem);
-            eventData.position = _poinerPosition;
-            var results = new List<RaycastResult>();
-            _raycaster.Raycast(eventData, results);
+            //PointerEventData eventData = new PointerEventData(_eventSystem);
+            //eventData.position = _poinerPosition;
+            //var results = new List<RaycastResult>();
+            //_raycaster.Raycast(eventData, results);
 
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
@@ -164,7 +164,7 @@ namespace Services
                 if (_current != null)
                 {
                     UpdateInfo();
-                    _current.Deselect(_info);
+                    _current.OnPointerExit(_info);
                     _current = null;
                 }
                 return;
@@ -175,7 +175,7 @@ namespace Services
                 UpdateInfo();
                 if (interactable != _current)
                 {
-                    interactable.Select(_info);
+                    interactable.OnPointerEnter(_info);
                     _current = interactable;
                     _last = interactable;
                 }

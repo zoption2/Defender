@@ -12,7 +12,7 @@ namespace TheGame
         [Inject] private IInputService _inputService;
         [Inject] private ISpellCardMediator _spellCardMediator;
         [SerializeField] private SpellCardView _prefab;
-        [SerializeField] private Transform _parent;
+        [SerializeField] private Transform[] _parents;
         private List<SpellCardController> _controllers = new();
         private System.Random _random;
 
@@ -24,7 +24,7 @@ namespace TheGame
             for (int i = 0; i < 16; i++)
             {
                 var controller = new SpellCardController(_inputService, _spellCardMediator);
-                var view = Instantiate(_prefab, _parent);
+                var view = Instantiate(_prefab, _parents[i]);
                 var randomData = _testDatas[_random.Next(_testDatas.Count)];
                 var model = new SpellCardModel(randomData);
                 await controller.Init(view, model);

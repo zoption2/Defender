@@ -4,8 +4,10 @@
     {
         void ApproveSelected();
         void RejectSelected();
-        void Select(InteractionInfo info);
-        void Deselect(InteractionInfo info);
+        void OnPointerEnter(InteractionInfo info);
+        void OnPointerExit(InteractionInfo info);
+        void OnPointerDown(InteractionInfo info);
+        void OnPointerUp(InteractionInfo info);
     }
 
 }

@@ -3,6 +3,7 @@ using Services;
 using Core;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using Services.InputEvents;
 
 namespace Gameplay
 {
@@ -15,7 +16,7 @@ namespace Gameplay
         void SetPosition(Vector2 position, System.Action callback);
     }
 
-    public interface ISpellCardInputs : IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler
+    public interface ISpellCardInputs : IPointerDownHandler, IPointerEnterHandler, IPointerExitHandler, IPointerUpHandler, IInteractable
     {
 
     }
@@ -135,6 +136,70 @@ namespace Gameplay
         public void Notify()
         {
             _mediator.CancelActivation(this);
+            _inputService.SetCurrentListener(null);
+        }
+
+        public void ApproveSelected()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void RejectSelected()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public void OnPointerEnter(InteractionInfo info)
+        {
+            if (!_isSelectable)
+            {
+                return;
+            }
+
+            if (info.IsPressed)
+            {
+                _mediator.AddSpellCard(this);
+            }
+            else
+            {
+                _view.Highlight();
+            }
+            _inputService.SetCurrentListener(null);
+        }
+
+        public void OnPointerExit(InteractionInfo info)
+        {
+            if (_isSelected)
+            {
+                _inputService.SetCurrentListener(this);
+            }
+
+            if (info.IsPressed)
+            {
+
+            }
+            else
+            {
+                _view.Unhighlight();
+            }
+        }
+
+        public void OnPointerDown(InteractionInfo info)
+        {
+            if (!_isSelectable)
+            {
+                return;
+            }
+
+            if (info.IsPressed)
+            {
+                _mediator.AddSpellCard(this);
+            }
+        }
+
+        public void OnPointerUp(InteractionInfo info)
+        {
+            _mediator.ConfirmActivation(this);
             _inputService.SetCurrentListener(null);
         }
     }
