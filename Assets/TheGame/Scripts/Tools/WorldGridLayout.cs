@@ -34,12 +34,12 @@ public class WorldGridLayout : MonoBehaviour
         float yPos = startPoint.y + yPosOffset/2;
         float xPos = startPoint.x + xPosOffset/2;
         int counter = 0;
-        for (int i = 0; i < _collumns; i++)
+        for (int i = 0; i < _rows; i++)
         {
-            var tempYPos = yPos + Mathf.Abs(yPosOffset * (i));
-            for (int s = 0; s < _rows; s++)
+            var tempXPos = xPos + Mathf.Abs(xPosOffset * (i));
+            for (int s = 0; s < _collumns; s++)
             {
-                var tempXPos = xPos + Mathf.Abs(xPosOffset * (s));
+                var tempYPos = yPos + Mathf.Abs(yPosOffset * (s));
                 Transform child = transform.GetChild(counter);
                 if (child != null)
                 {

@@ -31,10 +31,7 @@ namespace Services
 
         private Inputs _inputs;
         private Camera _camera;
-        private EventSystem _eventSystem;
         private InputSystemUIInputModule _inputModule;
-        private GraphicRaycaster _raycaster;
-        private List<IInteractable> _selected;
         private bool _isInputPressed;
         private Vector2 _poinerPosition;
         private RaycastHit[] _raycastHits = new RaycastHit[3];
@@ -50,7 +47,6 @@ namespace Services
                 if (_inputModule == null)
                 {
                     var go = new GameObject("NewEventSystem");
-                    _eventSystem = go.AddComponent<EventSystem>();
                     _inputModule = go.AddComponent<InputSystemUIInputModule>();
                     _inputModule.actionsAsset = _inputs.asset;
                 }
@@ -60,7 +56,6 @@ namespace Services
 
         public InputService()
         {
-            _selected = new List<IInteractable>();
             _info = new InteractionInfo();
         }
 
@@ -68,9 +63,8 @@ namespace Services
         {
             _inputs = new Inputs();
             _inputs.Enable();
-            _camera = Camera.main;
-            //_raycaster = GameObject.FindObjectOfType<Canvas>().GetComponent<GraphicRaycaster>();
             BindInputs();
+            _camera = Camera.main;
             InputModule.ActivateModule();
             Debug.Log("InputService inited");
         }
@@ -82,7 +76,6 @@ namespace Services
 
         private void BindInputs()
         {
-            var map = _inputs.Main;
             _inputs.Main.Contact.started += OnPressStarted;
             _inputs.Main.Contact.canceled += OnPressCanceled;
             _inputs.Main.Contact.Enable();
@@ -94,11 +87,6 @@ namespace Services
         {
             Debug.Log("Press started");
             _isInputPressed = true;
-
-            //PointerEventData eventData = new PointerEventData(_eventSystem);
-            //eventData.position = _poinerPosition;
-            //var results = new List<RaycastResult>();
-            //_raycaster.Raycast(eventData, results);
 
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
@@ -120,13 +108,6 @@ namespace Services
             _isInputPressed = false;
             UpdateInfo();
 
-            //PointerEventData eventData = new PointerEventData(_eventSystem);
-            //eventData.position = _poinerPosition;
-            //var results = new List<RaycastResult>();
-            //_raycaster.Raycast(eventData, results);
-
-            _selected.Clear();
-
             if (_currentListener != null)
             {
                 _currentListener.Notify();
@@ -136,34 +117,25 @@ namespace Services
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
             if (hits == 0)
             {
-                _last?.RejectSelected();
                 return;
             }
 
             if (_raycastHits[0].transform.TryGetComponent(out IInteractable interactable))
             {
-                _current.ApproveSelected();
+                interactable.OnPointerUp(_info);
             }
-
-
         }
 
         private void OnInputTrackingPerformed(InputAction.CallbackContext obj)
         {
             _poinerPosition = obj.ReadValue<Vector2>();
-
-            //PointerEventData eventData = new PointerEventData(_eventSystem);
-            //eventData.position = _poinerPosition;
-            //var results = new List<RaycastResult>();
-            //_raycaster.Raycast(eventData, results);
-
+            UpdateInfo();
             Ray ray = _camera.ScreenPointToRay(_poinerPosition);
             var hits = Physics.RaycastNonAlloc(ray, _raycastHits);
             if (hits == 0)
             {
                 if (_current != null)
                 {
-                    UpdateInfo();
                     _current.OnPointerExit(_info);
                     _current = null;
                 }
@@ -172,21 +144,12 @@ namespace Services
 
             if (_raycastHits[0].transform.TryGetComponent(out IInteractable interactable))
             {
-                UpdateInfo();
                 if (interactable != _current)
                 {
                     interactable.OnPointerEnter(_info);
                     _current = interactable;
-                    _last = interactable;
+                    //_last = interactable;
                 }
-
-                //{
-                //    if (_isInputPressed && !_selected.Contains(interactable))
-                //    {
-                //        _selected.Add(interactable);
-                //    }
-                //}
-
             }
         }
 

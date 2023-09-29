@@ -16,10 +16,6 @@ namespace Gameplay
 
     public class SpellCardView : MonoBehaviour
         , ISpellCardView
-        , IPointerDownHandler
-        , IPointerUpHandler
-        , IPointerEnterHandler
-        , IPointerExitHandler
         , IInteractable
     {
         [SerializeField] private SpriteRenderer _renderer;
@@ -36,7 +32,8 @@ namespace Gameplay
 
         public void Show(Action onShow)
         {
-            throw new NotImplementedException();
+            gameObject.SetActive(true);
+            onShow?.Invoke();
         }
 
         public void Hide(Action onHide)
@@ -76,41 +73,6 @@ namespace Gameplay
         public void Activate()
         {
             _renderer.color = Color.red;
-        }
-
-        public void OnPointerClick(PointerEventData eventData)
-        {
-            
-        }
-
-        public void OnPointerEnter(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerEnter(eventData);
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerExit(eventData);
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerDown(eventData);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            _inputsHandler.OnPointerUp(eventData);
-        }
-
-        public void ApproveSelected()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RejectSelected()
-        {
-            throw new NotImplementedException();
         }
 
         public void OnPointerEnter(InteractionInfo info)
