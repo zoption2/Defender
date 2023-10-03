@@ -1,4 +1,4 @@
-using System.Collections;
+using Tools;
 using System.Collections.Generic;
 using UnityEngine;
 using Services;
@@ -12,6 +12,8 @@ namespace TheGame
     {
         [Inject] private IInputService _inputService;
         [Inject] private ISpellCardMediator _spellCardMediator;
+        [Inject] private IRandomizeService _randomizeService;
+        [Inject] private Locator _locator;
         [SerializeField] private SpellCardView _prefab;
         [SerializeField] private Transform[] _pointers;
         [SerializeField] private CardPosition[] _cardPositions;
@@ -19,16 +21,17 @@ namespace TheGame
 
         private List<SpellCardController> _controllers = new();
         private System.Random _random;
-        private Locator _locator;
+
         private Dictionary<Vector2Int, Transform> _positions;
 
         private async void Start()
         {
-            _random = new System.Random();
+            _random = _randomizeService.GetNewRandomizer(1);
             _inputService.Initialize();
             _spellCardMediator.Initialize();
             BuildPositions();
-            _locator = new Locator();
+            _locator.Init(1);
+
             for (int i = 0; i < 16; i++)
             {
                 var location = _locator.GetRandomFreePosition();
@@ -82,68 +85,5 @@ namespace TheGame
             }
         }
     }
-
-    public class Locator
-    {
-        private bool[,] _positions = new bool[4, 4];
-        private System.Random _random;
-
-        public Locator()
-        {
-            _random = new System.Random(1);
-
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    _positions[i, j] = true;
-                }
-            }
-        }
-
-        public Vector2Int GetRandomFreePosition()
-        {
-            List<Vector2Int> freePositions = new List<Vector2Int>();
-
-            // Find all free positions
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    if (_positions[i, j])
-                    {
-                        freePositions.Add(new Vector2Int(i, j));
-                        break;
-                    }
-                }
-            }
-
-            // If there are no free positions, return (-1, -1) to indicate none available
-            if (freePositions.Count == 0)
-            {
-                return new Vector2Int(-1, -1);
-            }
-
-            // Randomly select a free position
-            int randomIndex = _random.Next(0, freePositions.Count);
-            Vector2Int selectedPosition = freePositions[randomIndex];
-            _positions[selectedPosition.x, selectedPosition.y] = false; // Mark as busy
-            return selectedPosition;
-        }
-
-        public void FreePosition(Vector2Int position)
-        {
-            if (IsValidPosition(position))
-            {
-                _positions[position.x, position.y] = true; // Mark as free
-            }
-        }
-
-        private bool IsValidPosition(Vector2Int position)
-        {
-            return position.x >= 0 && position.x < 4 && position.y >= 0 && position.y < 4;
-        }
-    }
-
 }
 
